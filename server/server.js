@@ -6,67 +6,48 @@ import morgan from "morgan";
 dotenv.config();
 
 import connectDB from "./config/db.js";
-
 import applicationRoutes from "./routes/applicationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-
 import { errorHandler } from "./middleware/errorMiddleware.js";
 
+// ==============================
 // Connect Database
+// ==============================
+
 connectDB();
 
 const app = express();
 
 // ==============================
-// Middlewares
+// CORS
 // ==============================
-
-// CORS Configuration
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:8080",
-  "http://localhost:8081",
-
-  // Vercel Frontend
-  "https://pm-internship-portal-ashen.vercel.app",
-];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow Postman & server-to-server requests
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      console.log("Blocked Origin:", origin);
-
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: true,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.use(
-  express.json({
-    limit: "10mb",
-  })
-);
+// ==============================
+// Body Parser
+// ==============================
 
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "10mb",
-  })
-);
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// ==============================
+// Logger
+// ==============================
 
 app.use(morgan("dev"));
 
+// ==============================
 // Static Folder
+// ==============================
+
 app.use("/uploads", express.static("uploads"));
 
 // ==============================
@@ -80,7 +61,10 @@ app.get("/", (req, res) => {
   });
 });
 
-// Health Check
+// ==============================
+// Health Route
+// ==============================
+
 app.get("/api", (req, res) => {
   res.status(200).json({
     success: true,
@@ -96,7 +80,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
 
 // ==============================
-// 404 Route
+// 404
 // ==============================
 
 app.use((req, res) => {
@@ -107,13 +91,13 @@ app.use((req, res) => {
 });
 
 // ==============================
-// Error Handler
+// Global Error Handler
 // ==============================
 
 app.use(errorHandler);
 
 // ==============================
-// Start Server
+// Server
 // ==============================
 
 const PORT = process.env.PORT || 5000;
@@ -123,8 +107,7 @@ app.listen(PORT, () => {
 ========================================
 🚀 Server Running Successfully
 
-🌐 URL  : http://localhost:${PORT}
-
+🌐 Port : ${PORT}
 📦 Mode : ${process.env.NODE_ENV || "development"}
 
 ========================================
