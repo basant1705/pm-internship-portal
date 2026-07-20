@@ -12,32 +12,29 @@ import authRoutes from "./routes/authRoutes.js";
 
 import { errorHandler } from "./middleware/errorMiddleware.js";
 
-
 // Connect Database
 connectDB();
 
-
 const app = express();
-
 
 // ==============================
 // Middlewares
 // ==============================
 
-
 // CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:8080",
-  "http://localhost:8081"
-];
+  "http://localhost:8081",
 
+  // Vercel Frontend
+  "https://pm-internship-portal-ashen.vercel.app",
+];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-
-      // Allow requests like Postman or server-to-server
+      // Allow Postman & server-to-server requests
       if (!origin) {
         return callback(null, true);
       }
@@ -46,130 +43,83 @@ app.use(
         return callback(null, true);
       }
 
-      return callback(
-        new Error("Not allowed by CORS")
-      );
+      console.log("Blocked Origin:", origin);
 
+      return callback(new Error("Not allowed by CORS"));
     },
-    credentials: true
+    credentials: true,
   })
 );
-
-
 
 app.use(
   express.json({
-    limit: "10mb"
+    limit: "10mb",
   })
 );
-
-
 
 app.use(
   express.urlencoded({
     extended: true,
-    limit: "10mb"
+    limit: "10mb",
   })
 );
 
+app.use(morgan("dev"));
 
-
-app.use(
-  morgan("dev")
-);
-
-
-
-// Static Folder for Resume Uploads
-
-app.use(
-  "/uploads",
-  express.static("uploads")
-);
-
-
-
+// Static Folder
+app.use("/uploads", express.static("uploads"));
 
 // ==============================
 // Home Route
 // ==============================
 
-app.get("/", (req,res)=>{
-
+app.get("/", (req, res) => {
   res.status(200).json({
-
-    success:true,
-
-    message:"🚀 Internship Portal Backend Running Successfully"
-
+    success: true,
+    message: "🚀 Internship Portal Backend Running Successfully",
   });
-
 });
 
-
-
+// Health Check
+app.get("/api", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "API Working Successfully",
+  });
+});
 
 // ==============================
 // API Routes
 // ==============================
 
-
-app.use(
-  "/api/auth",
-  authRoutes
-);
-
-
-app.use(
-  "/api/applications",
-  applicationRoutes
-);
-
-
-
+app.use("/api/auth", authRoutes);
+app.use("/api/applications", applicationRoutes);
 
 // ==============================
 // 404 Route
 // ==============================
 
-
-app.use((req,res)=>{
-
+app.use((req, res) => {
   res.status(404).json({
-
-    success:false,
-
-    message:"Route Not Found"
-
+    success: false,
+    message: "Route Not Found",
   });
-
 });
 
-
-
-
 // ==============================
-// Global Error Handler
+// Error Handler
 // ==============================
-
 
 app.use(errorHandler);
-
-
-
 
 // ==============================
 // Start Server
 // ==============================
 
-
 const PORT = process.env.PORT || 5000;
 
-
-app.listen(PORT,()=>{
-
-
-console.log(`
+app.listen(PORT, () => {
+  console.log(`
 ========================================
 🚀 Server Running Successfully
 
@@ -179,5 +129,4 @@ console.log(`
 
 ========================================
 `);
-
 });
